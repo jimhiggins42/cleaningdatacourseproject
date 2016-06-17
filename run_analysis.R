@@ -11,15 +11,11 @@
 # 5. From the data set in step 4, creates a second, independent tidy data set with the average
 #    of each variable for each activity and each subject.
 #
-# Parameters
-#
-#   data_dir    The directory that holds the data set
-#
 # Return value
 #
 #   A tidy data set as described above
 
-run_analysis <- function(data_dir = "data") {
+run_analysis <- function() {
     
     # First, create data frames based on the "training" and "test" data sets.
     
@@ -39,9 +35,14 @@ run_analysis <- function(data_dir = "data") {
     
     combined_set<- merge(test_set, training_set, all = TRUE)
  
-    # 
-       
-    combined_set
+    # Now create a new tidy data set that has the average of each variable for each activity and each subject.
+
+    variable_columns <- c(grep("[Mm]ean", names(combined_set)), grep("[Ss]td", names(combined_set)))
+    melted_data <- melt(combined_set, id=c("activity", "subject_ids"), measure.vars=variable_columns)
+    
+    tidy_data <- dcast(melted_data, subject_ids + activity ~ variable, mean)
+    
+    tidy_data
 }
 
 
@@ -79,10 +80,6 @@ build_activity_data_frame <- function(subject_file, test_set_file, test_labels_f
     
     features <- read.table(features_file, stringsAsFactors = FALSE)
     
-    # Read the activity labels. This describes the observations in the test_set.
-    # TODO: how to use this to populate the activities?
-    activity_labels <- read.table(activity_labels_file, stringsAsFactors = FALSE)
-    
     # Now that we have the raw data, build it up into the requested data frame.
     
     # Label the parameters in the data set according to the features descriptions.
@@ -99,7 +96,7 @@ build_activity_data_frame <- function(subject_file, test_set_file, test_labels_f
     meanframe <- select(test_set, contains("mean", ignore.case = TRUE))
     
     built_df <- data.frame(stdframe, meanframe, test_set$subject_ids)
-    rename(built_df, test_set.subject_ids = subject_ids)
+    built_df <- rename(built_df, subject_ids = test_set.subject_ids)
     
     # Name the activities in the data set.
     
