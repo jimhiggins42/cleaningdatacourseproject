@@ -35,8 +35,6 @@ run_analysis <- function(data_dir = "data") {
                                           "data/features.txt",
                                           "data/activity_labels.txt")
 
-    # Get the columns out of the 
-    
     # Merge the training and test data sets to create one data set.
     
     combined_set<- merge(test_set, training_set, all = TRUE)
@@ -91,25 +89,27 @@ build_activity_data_frame <- function(subject_file, test_set_file, test_labels_f
     
     names(test_set) <- features$V2
 
-    # Now extract only the measurements on mean and standard deviation.
- 
-    #stdframe <- select(test_set, contains("std", ignore.case = TRUE))
-    #meanframe <- select(test_set, contains("mean", ignore.case = TRUE))
-    #test_set <- data.frame(stdframe, meanframe)
-
     # Add the subject IDs.
     
     test_set[, "subject_ids"] <- subjects
+
+    # Now extract only the measurements on mean and standard deviation.
+
+    stdframe <- select(test_set, contains("std", ignore.case = TRUE))
+    meanframe <- select(test_set, contains("mean", ignore.case = TRUE))
+    
+    built_df <- data.frame(stdframe, meanframe, test_set$subject_ids)
+    rename(built_df, test_set.subject_ids = subject_ids)
     
     # Name the activities in the data set.
     
-    test_set[, "activity"] <- test_labels
-    test_set[test_set$activity==1,]$activity <- "WALKING"
-    test_set[test_set$activity==2,]$activity <- "WALKING_UPSTAIRS"
-    test_set[test_set$activity==3,]$activity <- "WALKING_DOWNSTAIRS"
-    test_set[test_set$activity==4,]$activity <- "SITTING"
-    test_set[test_set$activity==5,]$activity <- "STANDING"
-    test_set[test_set$activity==6,]$activity <- "LAYING"
-    
-    test_set
+    built_df[, "activity"] <- test_labels
+    built_df[built_df$activity==1,]$activity <- "WALKING"
+    built_df[built_df$activity==2,]$activity <- "WALKING_UPSTAIRS"
+    built_df[built_df$activity==3,]$activity <- "WALKING_DOWNSTAIRS"
+    built_df[built_df$activity==4,]$activity <- "SITTING"
+    built_df[built_df$activity==5,]$activity <- "STANDING"
+    built_df[built_df$activity==6,]$activity <- "LAYING"
+
+    built_df
 }
