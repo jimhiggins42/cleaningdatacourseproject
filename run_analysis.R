@@ -14,8 +14,10 @@
 # Return value
 #
 #   A tidy data set as described above
-
 run_analysis <- function() {
+    
+    require(reshape2)
+    require(dplyr)
     
     # First, create data frames based on the "training" and "test" data sets.
     
@@ -34,7 +36,11 @@ run_analysis <- function() {
     # Merge the training and test data sets to create one data set.
     
     combined_set<- merge(test_set, training_set, all = TRUE)
- 
+
+    # Clean up the column names so they are more descriptive.
+    
+    names(combined_set) <- clean_variable_names(names(combined_set))
+    
     # Now create a new tidy data set that has the average of each variable for each activity and each subject.
 
     variable_columns <- c(grep("[Mm]ean", names(combined_set)), grep("[Ss]td", names(combined_set)))
@@ -52,11 +58,11 @@ run_analysis <- function() {
 
 # Parameters:
 # 
-#   subject_file The file containing the subject IDs for the test rows.
-#   test_set_file The file containin the test set.
-#   test_labels_file The file containing the test labels.
-#   featuers_file The file containing the features list.
-#   activity_labels_file The file containing the activity labels.
+#   subject_file            The file containing the subject IDs for the test rows.
+#   test_set_file           The file containin the test set.
+#   test_labels_file        The file containing the test labels.
+#   featuers_file           The file containing the features list.
+#   activity_labels_file    The file containing the activity labels.
 #
 # Return value
 #
@@ -109,4 +115,38 @@ build_activity_data_frame <- function(subject_file, test_set_file, test_labels_f
     built_df[built_df$activity==6,]$activity <- "LAYING"
 
     built_df
+}
+
+
+# Produce clean variable names.
+#
+# Parameters
+#
+#   dirty_names     The vector of names to clean
+#
+# Return
+#
+#   A vector of the same length as dirty_names that are more descriptive.
+clean_variable_names <- function(dirty_names) {
+
+    # Get rid of extra periods, duplicate words, and redundant prefixes.
+    
+    clean_names <- gsub("\\.\\.", "\\.", dirty_names)
+    clean_names <- gsub("\\.\\.", "\\.", clean_names)
+    clean_names <- gsub("\\.$", "", clean_names)
+    clean_names <- gsub("BodyBody", "Body", clean_names)
+    clean_names <- gsub("^[tf]", "", clean_names)
+}
+
+
+# Generates a file containing the tidy data set created by the run_analysis() function.
+# The output file is a text file.
+#
+# Parameters
+#
+#   filename    The file name to use for the output file.
+generate_tidy_data_file <- function(filename = "tidy_data.txt") {
+    df <- run_analysis()
+    
+    write.table(df, filename, row.names = FALSE)    
 }
